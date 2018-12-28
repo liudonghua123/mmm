@@ -202,7 +202,7 @@ export default [
           {
             path: '/help/',
             name: 'Quick Start',
-            component: './help/Help',
+            component: './Help/Help',
           },
         ],
       },
