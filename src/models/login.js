@@ -16,6 +16,7 @@ export default {
   effects: {
     *login({ payload }, { call, put }) {
       const response = yield call(login, payload);
+      console.info(`login: effets login response: ${JSON.stringify(response)}`);
       yield put({
         type: 'changeLoginStatus',
         payload: response,
@@ -40,6 +41,13 @@ export default {
         }
         yield put(routerRedux.replace(redirect || '/'));
       }
+    },
+
+    *updateLoginUser({ payload }, { put }) {
+      yield put({
+        type: 'updateLoginStatus',
+        payload,
+      });
     },
 
     *getCaptcha({ payload }, { call }) {
@@ -69,11 +77,23 @@ export default {
   reducers: {
     changeLoginStatus(state, { payload }) {
       setAuthority(payload.currentAuthority);
-      return {
+      const newState = {
         ...state,
+        ...payload,
         status: payload.status,
         type: payload.type,
       };
+      console.info(`login: reducers changeLoginStatus newState: ${JSON.stringify(newState)}`);
+      return newState;
+    },
+
+    updateLoginStatus(state, { payload }) {
+      const newState = {
+        ...state,
+        ...payload,
+      };
+      console.info(`login: reducers updateLoginStatus newState: ${JSON.stringify(newState)}`);
+      return newState;
     },
   },
 };

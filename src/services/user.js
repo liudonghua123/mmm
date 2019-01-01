@@ -1,6 +1,5 @@
 import request from '@/utils/request';
 
-
 export async function login(params) {
   return request('/api/users/login', {
     method: 'POST',
@@ -21,4 +20,34 @@ export async function queryUsers() {
 
 export async function queryUserById(id) {
   return request(`/api/users/${id}`);
+}
+
+export async function removeUser(params) {
+  return request('/api/users', {
+    method: 'POST',
+    body: {
+      ...params,
+      method: 'delete',
+    },
+  });
+}
+
+export async function addUser(params) {
+  return request('/api/users', {
+    method: 'POST',
+    body: {
+      ...params,
+      method: 'post',
+    },
+  });
+}
+
+export async function updateUser(params) {
+  return request('/api/users', {
+    method: 'PUT',
+    body: {
+      ...params,
+      method: 'put',
+    },
+  });
 }

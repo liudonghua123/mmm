@@ -1,4 +1,4 @@
-import React, { PureComponent, Fragment } from 'react';
+import React, { Component, PureComponent, Fragment } from 'react';
 import { connect } from 'dva';
 import moment from 'moment';
 import {
@@ -36,7 +36,7 @@ const getValue = obj =>
     .map(key => obj[key])
     .join(',');
 const statusMap = ['default', 'processing', 'success', 'error'];
-const status = ['关闭', '运行中', '已上线', '异常'];
+const status = ['Enable', 'Disable'];
 
 const CreateForm = Form.create()(props => {
   const { modalVisible, form, handleAdd, handleModalVisible } = props;
@@ -64,8 +64,48 @@ const CreateForm = Form.create()(props => {
   );
 });
 
+const CollectionCreateForm = Form.create()(
+  // eslint-disable-next-line
+  class extends Component {
+    render() {
+      const { visible, onCancel, onCreate, form } = this.props;
+      const { getFieldDecorator } = form;
+      return (
+        <Modal
+          visible={visible}
+          title="Create a new collection"
+          okText="Create"
+          onCancel={onCancel}
+          onOk={onCreate}
+        >
+          <Form layout="vertical">
+            <Form.Item label="Title">
+              {getFieldDecorator('title', {
+                rules: [{ required: true, message: 'Please input the title of collection!' }],
+              })(<Input />)}
+            </Form.Item>
+            <Form.Item label="Description">
+              {getFieldDecorator('description')(<Input type="textarea" />)}
+            </Form.Item>
+            <Form.Item className="collection-create-form_last-form-item">
+              {getFieldDecorator('modifier', {
+                initialValue: 'public',
+              })(
+                <Radio.Group>
+                  <Radio value="public">Public</Radio>
+                  <Radio value="private">Private</Radio>
+                </Radio.Group>
+              )}
+            </Form.Item>
+          </Form>
+        </Modal>
+      );
+    }
+  }
+);
+
 @Form.create()
-class UpdateForm extends PureComponent {
+class UpdateForm extends Component {
   static defaultProps = {
     handleUpdate: () => {},
     handleUpdateModalVisible: () => {},
@@ -86,7 +126,6 @@ class UpdateForm extends PureComponent {
         time: '',
         frequency: 'month',
       },
-      currentStep: 0,
     };
 
     this.formLayout = {
@@ -95,160 +134,25 @@ class UpdateForm extends PureComponent {
     };
   }
 
-  handleNext = currentStep => {
-    const { form, handleUpdate } = this.props;
-    const { formVals: oldValue } = this.state;
-    form.validateFields((err, fieldsValue) => {
-      if (err) return;
-      const formVals = { ...oldValue, ...fieldsValue };
-      this.setState(
-        {
-          formVals,
-        },
-        () => {
-          if (currentStep < 2) {
-            this.forward();
-          } else {
-            handleUpdate(formVals);
-          }
-        }
-      );
-    });
-  };
+  handleOk = e => {};
 
-  backward = () => {
-    const { currentStep } = this.state;
-    this.setState({
-      currentStep: currentStep - 1,
-    });
-  };
-
-  forward = () => {
-    const { currentStep } = this.state;
-    this.setState({
-      currentStep: currentStep + 1,
-    });
-  };
-
-  renderContent = (currentStep, formVals) => {
-    const { form } = this.props;
-    if (currentStep === 1) {
-      return [
-        <FormItem key="target" {...this.formLayout} label="监控对象">
-          {form.getFieldDecorator('target', {
-            initialValue: formVals.target,
-          })(
-            <Select style={{ width: '100%' }}>
-              <Option value="0">表一</Option>
-              <Option value="1">表二</Option>
-            </Select>
-          )}
-        </FormItem>,
-        <FormItem key="template" {...this.formLayout} label="规则模板">
-          {form.getFieldDecorator('template', {
-            initialValue: formVals.template,
-          })(
-            <Select style={{ width: '100%' }}>
-              <Option value="0">规则模板一</Option>
-              <Option value="1">规则模板二</Option>
-            </Select>
-          )}
-        </FormItem>,
-        <FormItem key="type" {...this.formLayout} label="规则类型">
-          {form.getFieldDecorator('type', {
-            initialValue: formVals.type,
-          })(
-            <RadioGroup>
-              <Radio value="0">强</Radio>
-              <Radio value="1">弱</Radio>
-            </RadioGroup>
-          )}
-        </FormItem>,
-      ];
-    }
-    if (currentStep === 2) {
-      return [
-        <FormItem key="time" {...this.formLayout} label="开始时间">
-          {form.getFieldDecorator('time', {
-            rules: [{ required: true, message: '请选择开始时间！' }],
-          })(
-            <DatePicker
-              style={{ width: '100%' }}
-              showTime
-              format="YYYY-MM-DD HH:mm:ss"
-              placeholder="选择开始时间"
-            />
-          )}
-        </FormItem>,
-        <FormItem key="frequency" {...this.formLayout} label="调度周期">
-          {form.getFieldDecorator('frequency', {
-            initialValue: formVals.frequency,
-          })(
-            <Select style={{ width: '100%' }}>
-              <Option value="month">月</Option>
-              <Option value="week">周</Option>
-            </Select>
-          )}
-        </FormItem>,
-      ];
-    }
-    return [
-      <FormItem key="name" {...this.formLayout} label="规则名称">
-        {form.getFieldDecorator('name', {
-          rules: [{ required: true, message: '请输入规则名称！' }],
-          initialValue: formVals.name,
-        })(<Input placeholder="请输入" />)}
-      </FormItem>,
-      <FormItem key="desc" {...this.formLayout} label="规则描述">
-        {form.getFieldDecorator('desc', {
-          rules: [{ required: true, message: '请输入至少五个字符的规则描述！', min: 5 }],
-          initialValue: formVals.desc,
-        })(<TextArea rows={4} placeholder="请输入至少五个字符" />)}
-      </FormItem>,
-    ];
-  };
-
-  renderFooter = currentStep => {
+  renderFooter = e => {
     const { handleUpdateModalVisible, values } = this.props;
-    if (currentStep === 1) {
-      return [
-        <Button key="back" style={{ float: 'left' }} onClick={this.backward}>
-          上一步
-        </Button>,
-        <Button key="cancel" onClick={() => handleUpdateModalVisible(false, values)}>
-          取消
-        </Button>,
-        <Button key="forward" type="primary" onClick={() => this.handleNext(currentStep)}>
-          下一步
-        </Button>,
-      ];
-    }
-    if (currentStep === 2) {
-      return [
-        <Button key="back" style={{ float: 'left' }} onClick={this.backward}>
-          上一步
-        </Button>,
-        <Button key="cancel" onClick={() => handleUpdateModalVisible(false, values)}>
-          取消
-        </Button>,
-        <Button key="submit" type="primary" onClick={() => this.handleNext(currentStep)}>
-          完成
-        </Button>,
-      ];
-    }
     return [
       <Button key="cancel" onClick={() => handleUpdateModalVisible(false, values)}>
-        取消
+        Cancel
       </Button>,
-      <Button key="forward" type="primary" onClick={() => this.handleNext(currentStep)}>
-        下一步
+      <Button key="ok" type="primary" onClick={() => this.handleOk}>
+        OK
       </Button>,
     ];
   };
 
   render() {
-    const { updateModalVisible, handleUpdateModalVisible, values } = this.props;
-    const { currentStep, formVals } = this.state;
+    const { updateModalVisible, handleUpdateModalVisible, values, form } = this.props;
+    const { getFieldDecorator } = form;
+    console.info(`this.props: ${JSON.stringify(this.props)}`);
+    const { formVals } = this.state;
 
     return (
       <Modal
@@ -257,25 +161,61 @@ class UpdateForm extends PureComponent {
         destroyOnClose
         title="规则配置"
         visible={updateModalVisible}
-        footer={this.renderFooter(currentStep)}
+        footer={this.renderFooter}
         onCancel={() => handleUpdateModalVisible(false, values)}
         afterClose={() => handleUpdateModalVisible()}
       >
-        <Steps style={{ marginBottom: 28 }} size="small" current={currentStep}>
-          <Step title="基本信息" />
-          <Step title="配置规则属性" />
-          <Step title="设定调度周期" />
-        </Steps>
-        {this.renderContent(currentStep, formVals)}
+        <Form onSubmit={this.handleSubmit}>
+          <FormItem>
+            {getFieldDecorator('email', {
+              rules: [
+                {
+                  required: true,
+                },
+                {
+                  type: 'email',
+                },
+              ],
+            })()}
+          </FormItem>
+          <FormItem>
+            {getFieldDecorator('username', {
+              rules: [
+                {
+                  required: true,
+                },
+              ],
+            })(
+              <Input
+                size="large"
+                placeholder={formatMessage({ id: 'form.userName.placeholder' })}
+              />
+            )}
+          </FormItem>
+          <FormItem>
+            {getFieldDecorator('password', {
+              rules: [
+                {
+                  required: true,
+                },
+              ],
+            })(
+              <Input
+                size="large"
+                placeholder={formatMessage({ id: 'form.password.placeholder' })}
+              />
+            )}
+          </FormItem>
+        </Form>
       </Modal>
     );
   }
 }
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ rule, loading }) => ({
-  rule,
-  loading: loading.models.rule,
+@connect(({ user, loading }) => ({
+  user,
+  loading: loading.models.user,
 }))
 @Form.create()
 class TableList extends PureComponent {
@@ -290,24 +230,20 @@ class TableList extends PureComponent {
 
   columns = [
     {
-      title: '规则名称',
-      dataIndex: 'name',
+      title: 'username',
+      dataIndex: 'username',
     },
     {
-      title: '描述',
-      dataIndex: 'desc',
+      title: 'email',
+      dataIndex: 'email',
     },
     {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
+      title: 'phone',
+      dataIndex: 'phone',
       sorter: true,
-      align: 'right',
-      render: val => `${val} 万`,
-      // mark to display a total number
-      needTotal: true,
     },
     {
-      title: '状态',
+      title: 'status',
       dataIndex: 'status',
       filters: [
         {
@@ -318,32 +254,22 @@ class TableList extends PureComponent {
           text: status[1],
           value: 1,
         },
-        {
-          text: status[2],
-          value: 2,
-        },
-        {
-          text: status[3],
-          value: 3,
-        },
       ],
       render(val) {
         return <Badge status={statusMap[val]} text={status[val]} />;
       },
     },
     {
-      title: '上次调度时间',
-      dataIndex: 'updatedAt',
-      sorter: true,
-      render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
+      title: 'address',
+      dataIndex: 'address',
     },
     {
-      title: '操作',
+      title: 'Operation',
       render: (text, record) => (
         <Fragment>
-          <a onClick={() => this.handleUpdateModalVisible(true, record)}>配置</a>
+          <a onClick={() => this.handleUpdateModalVisible(true, record)}>More</a>
           <Divider type="vertical" />
-          <a href="">订阅警报</a>
+          <a onClick={() => this.handleUpdateModalVisible(true, record)}>Edit</a>
         </Fragment>
       ),
     },
@@ -352,7 +278,7 @@ class TableList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/fetch',
+      type: 'user/fetch',
     });
   }
 
@@ -377,7 +303,7 @@ class TableList extends PureComponent {
     }
 
     dispatch({
-      type: 'rule/fetch',
+      type: 'user/fetch',
       payload: params,
     });
   };
@@ -389,7 +315,7 @@ class TableList extends PureComponent {
       formValues: {},
     });
     dispatch({
-      type: 'rule/fetch',
+      type: 'user/fetch',
       payload: {},
     });
   };
@@ -409,7 +335,7 @@ class TableList extends PureComponent {
     switch (e.key) {
       case 'remove':
         dispatch({
-          type: 'rule/remove',
+          type: 'user/remove',
           payload: {
             key: selectedRows.map(row => row.key),
           },
@@ -449,7 +375,7 @@ class TableList extends PureComponent {
       });
 
       dispatch({
-        type: 'rule/fetch',
+        type: 'user/fetch',
         payload: values,
       });
     });
@@ -471,7 +397,7 @@ class TableList extends PureComponent {
   handleAdd = fields => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/add',
+      type: 'user/add',
       payload: {
         desc: fields.desc,
       },
@@ -484,7 +410,7 @@ class TableList extends PureComponent {
   handleUpdate = fields => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'rule/update',
+      type: 'user/update',
       payload: {
         name: fields.name,
         desc: fields.desc,
@@ -504,16 +430,16 @@ class TableList extends PureComponent {
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="规则名称">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+            <FormItem label="username">
+              {getFieldDecorator('name')(<Input placeholder="Input the username" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="使用状态">
+            <FormItem label="status">
               {getFieldDecorator('status')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="0">关闭</Option>
-                  <Option value="1">运行中</Option>
+                <Select placeholder="Please choose" style={{ width: '100%' }}>
+                  <Option value="0">Enable</Option>
+                  <Option value="1">Disable</Option>
                 </Select>
               )}
             </FormItem>
@@ -521,13 +447,13 @@ class TableList extends PureComponent {
           <Col md={8} sm={24}>
             <span className={styles.submitButtons}>
               <Button type="primary" htmlType="submit">
-                查询
+                Search
               </Button>
               <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
-                重置
+                Reset
               </Button>
               <a style={{ marginLeft: 8 }} onClick={this.toggleForm}>
-                展开 <Icon type="down" />
+                Fold down <Icon type="down" />
               </a>
             </span>
           </Col>
@@ -544,51 +470,31 @@ class TableList extends PureComponent {
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="规则名称">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
+            <FormItem label="username">
+              {getFieldDecorator('name')(<Input placeholder="Enter the username" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="使用状态">
+            <FormItem label="status">
               {getFieldDecorator('status')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="0">关闭</Option>
-                  <Option value="1">运行中</Option>
+                <Select placeholder="Please Choose" style={{ width: '100%' }}>
+                  <Option value="0">Enable</Option>
+                  <Option value="1">Disable</Option>
                 </Select>
               )}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="调用次数">
-              {getFieldDecorator('number')(<InputNumber style={{ width: '100%' }} />)}
+            <FormItem label="email">
+              {getFieldDecorator('number')(<Input style={{ width: '100%' }} />)}
             </FormItem>
           </Col>
         </Row>
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="更新日期">
+            <FormItem label="phone">
               {getFieldDecorator('date')(
-                <DatePicker style={{ width: '100%' }} placeholder="请输入更新日期" />
-              )}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="使用状态">
-              {getFieldDecorator('status3')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="0">关闭</Option>
-                  <Option value="1">运行中</Option>
-                </Select>
-              )}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="使用状态">
-              {getFieldDecorator('status4')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="0">关闭</Option>
-                  <Option value="1">运行中</Option>
-                </Select>
+                <Input style={{ width: '100%' }} placeholder="请输入更新日期" />
               )}
             </FormItem>
           </Col>
@@ -596,13 +502,13 @@ class TableList extends PureComponent {
         <div style={{ overflow: 'hidden' }}>
           <div style={{ float: 'right', marginBottom: 24 }}>
             <Button type="primary" htmlType="submit">
-              查询
+              Search
             </Button>
             <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
-              重置
+              Reset
             </Button>
             <a style={{ marginLeft: 8 }} onClick={this.toggleForm}>
-              收起 <Icon type="up" />
+              Fold up <Icon type="up" />
             </a>
           </div>
         </div>
@@ -615,16 +521,42 @@ class TableList extends PureComponent {
     return expandForm ? this.renderAdvancedForm() : this.renderSimpleForm();
   }
 
+  showModal = () => {
+    this.setState({ visible: true });
+  };
+
+  handleCancel = () => {
+    this.setState({ visible: false });
+  };
+
+  handleCreate = () => {
+    const form = this.formRef.props.form;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+
+      console.log('Received values of form: ', values);
+      form.resetFields();
+      this.setState({ visible: false });
+    });
+  };
+
+  saveFormRef = formRef => {
+    this.formRef = formRef;
+  };
+
   render() {
     const {
-      rule: { data },
+      user: { data },
       loading,
     } = this.props;
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
-        <Menu.Item key="remove">删除</Menu.Item>
-        <Menu.Item key="approval">批量审批</Menu.Item>
+        <Menu.Item key="remove">Remove</Menu.Item>
+        <Menu.Item key="enable">Enable</Menu.Item>
+        <Menu.Item key="disable">Disable</Menu.Item>
       </Menu>
     );
 
@@ -637,20 +569,20 @@ class TableList extends PureComponent {
       handleUpdate: this.handleUpdate,
     };
     return (
-      <PageHeaderWrapper title="查询表格">
+      <PageHeaderWrapper title="User Management Table">
         <Card bordered={false}>
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
             <div className={styles.tableListOperator}>
               <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
-                新建
+                Create
               </Button>
               {selectedRows.length > 0 && (
                 <span>
-                  <Button>批量操作</Button>
+                  <Button>Batch Operation</Button>
                   <Dropdown overlay={menu}>
                     <Button>
-                      更多操作 <Icon type="down" />
+                      More <Icon type="down" />
                     </Button>
                   </Dropdown>
                 </span>
@@ -667,13 +599,19 @@ class TableList extends PureComponent {
           </div>
         </Card>
         <CreateForm {...parentMethods} modalVisible={modalVisible} />
-        {stepFormValues && Object.keys(stepFormValues).length ? (
+        {/* {stepFormValues && Object.keys(stepFormValues).length ? (
           <UpdateForm
             {...updateMethods}
             updateModalVisible={updateModalVisible}
             values={stepFormValues}
           />
-        ) : null}
+        ) : null} */}
+        <CollectionCreateForm
+          wrappedComponentRef={this.saveFormRef}
+          visible={this.state.visible}
+          onCancel={this.handleCancel}
+          onCreate={this.handleCreate}
+        />
       </PageHeaderWrapper>
     );
   }

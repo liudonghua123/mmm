@@ -1,4 +1,4 @@
-import { queryUsers, queryUserById } from '@/services/user';
+import { queryUsers, addUser, removeUser, updateUser, queryUserById } from '@/services/user';
 
 export default {
   namespace: 'user',
@@ -16,6 +16,30 @@ export default {
         payload: response,
       });
     },
+    *add({ payload, callback }, { call, put }) {
+      const response = yield call(addUser, payload);
+      yield put({
+        type: 'save',
+        payload: response,
+      });
+      if (callback) callback();
+    },
+    *remove({ payload, callback }, { call, put }) {
+      const response = yield call(removeUser, payload);
+      yield put({
+        type: 'save',
+        payload: response,
+      });
+      if (callback) callback();
+    },
+    *update({ payload, callback }, { call, put }) {
+      const response = yield call(updateUser, payload);
+      yield put({
+        type: 'save',
+        payload: response,
+      });
+      if (callback) callback();
+    },
     *fetchCurrent(_, { call, put }) {
       const response = yield call(queryUserById, 1);
       yield put({
@@ -29,7 +53,7 @@ export default {
     save(state, action) {
       return {
         ...state,
-        list: action.payload,
+        data: action.payload,
       };
     },
     saveCurrentUser(state, action) {
