@@ -38,175 +38,50 @@ const getValue = obj =>
 const statusMap = ['default', 'processing', 'success', 'error'];
 const status = ['Enable', 'Disable'];
 
-const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible } = props;
-  const okHandle = () => {
-    form.validateFields((err, fieldsValue) => {
-      if (err) return;
-      form.resetFields();
-      handleAdd(fieldsValue);
-    });
-  };
-  return (
-    <Modal
-      destroyOnClose
-      title="新建规则"
-      visible={modalVisible}
-      onOk={okHandle}
-      onCancel={() => handleModalVisible()}
-    >
-      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
-        {form.getFieldDecorator('desc', {
-          rules: [{ required: true, message: '请输入至少五个字符的规则描述！', min: 5 }],
-        })(<Input placeholder="请输入" />)}
-      </FormItem>
-    </Modal>
-  );
-});
-
-const CollectionCreateForm = Form.create()(
-  // eslint-disable-next-line
-  class extends Component {
-    render() {
-      const { visible, onCancel, onCreate, form } = this.props;
-      const { getFieldDecorator } = form;
-      return (
-        <Modal
-          visible={visible}
-          title="Create a new collection"
-          okText="Create"
-          onCancel={onCancel}
-          onOk={onCreate}
-        >
-          <Form layout="vertical">
-            <Form.Item label="Title">
-              {getFieldDecorator('title', {
-                rules: [{ required: true, message: 'Please input the title of collection!' }],
-              })(<Input />)}
-            </Form.Item>
-            <Form.Item label="Description">
-              {getFieldDecorator('description')(<Input type="textarea" />)}
-            </Form.Item>
-            <Form.Item className="collection-create-form_last-form-item">
-              {getFieldDecorator('modifier', {
-                initialValue: 'public',
-              })(
-                <Radio.Group>
-                  <Radio value="public">Public</Radio>
-                  <Radio value="private">Private</Radio>
-                </Radio.Group>
-              )}
-            </Form.Item>
-          </Form>
-        </Modal>
-      );
-    }
-  }
-);
-
 @Form.create()
-class UpdateForm extends Component {
-  static defaultProps = {
-    handleUpdate: () => {},
-    handleUpdateModalVisible: () => {},
-    values: {},
-  };
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      formVals: {
-        name: props.values.name,
-        desc: props.values.desc,
-        key: props.values.key,
-        target: '0',
-        template: '0',
-        type: '1',
-        time: '',
-        frequency: 'month',
-      },
-    };
-
-    this.formLayout = {
-      labelCol: { span: 7 },
-      wrapperCol: { span: 13 },
-    };
-  }
-
-  handleOk = e => {};
-
-  renderFooter = e => {
-    const { handleUpdateModalVisible, values } = this.props;
-    return [
-      <Button key="cancel" onClick={() => handleUpdateModalVisible(false, values)}>
-        Cancel
-      </Button>,
-      <Button key="ok" type="primary" onClick={() => this.handleOk}>
-        OK
-      </Button>,
-    ];
-  };
-
+class ViewFormModal extends Component {
   render() {
-    const { updateModalVisible, handleUpdateModalVisible, values, form } = this.props;
-    const { getFieldDecorator } = form;
-    console.info(`this.props: ${JSON.stringify(this.props)}`);
-    const { formVals } = this.state;
-
+    const { visible, record, handleModalVisible } = this.props;
     return (
       <Modal
-        width={640}
-        bodyStyle={{ padding: '32px 40px 48px' }}
-        destroyOnClose
-        title="规则配置"
-        visible={updateModalVisible}
-        footer={this.renderFooter}
-        onCancel={() => handleUpdateModalVisible(false, values)}
-        afterClose={() => handleUpdateModalVisible()}
+        title="View"
+        visible={visible}
+        onOk={() => handleModalVisible(false)}
+        cancelButtonProps={{ display: 'none', disabled: true }}
       >
-        <Form onSubmit={this.handleSubmit}>
-          <FormItem>
-            {getFieldDecorator('email', {
-              rules: [
-                {
-                  required: true,
-                },
-                {
-                  type: 'email',
-                },
-              ],
-            })()}
-          </FormItem>
-          <FormItem>
-            {getFieldDecorator('username', {
-              rules: [
-                {
-                  required: true,
-                },
-              ],
-            })(
-              <Input
-                size="large"
-                placeholder={formatMessage({ id: 'form.userName.placeholder' })}
-              />
-            )}
-          </FormItem>
-          <FormItem>
-            {getFieldDecorator('password', {
-              rules: [
-                {
-                  required: true,
-                },
-              ],
-            })(
-              <Input
-                size="large"
-                placeholder={formatMessage({ id: 'form.password.placeholder' })}
-              />
-            )}
-          </FormItem>
-        </Form>
+        <p>Card content</p>
+        <p>Card content</p>
+        <p>Card content</p>
+      </Modal>
+    );
+  }
+}
+
+@Form.create()
+class EditFormModal extends Component {
+  render() {
+    const { visible, record, handleModalVisible, handleEditModal, form } = this.props;
+    const { getFieldDecorator } = form;
+    console.info(`this.props: ${JSON.stringify(this.props)}`);
+    console.info(`getFieldDecorator: ${getFieldDecorator}`);
+    return (
+      <Modal
+        destroyOnClose
+        title="View"
+        visible={visible}
+        onOk={handleEditModal}
+        onCancel={() => handleEditModal(false)}
+      >
+        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
+          {getFieldDecorator('desc', {
+            rules: [{ required: true, message: '请输入至少五个字符的规则描述！', min: 5 }],
+          })(<Input placeholder="请输入" />)}
+        </FormItem>
+        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述2">
+          {getFieldDecorator('desc2', {
+            rules: [{ required: true, message: '请输入至少五个字符的规则描述！', min: 5 }],
+          })(<Input placeholder="请输入" />)}
+        </FormItem>
       </Modal>
     );
   }
@@ -220,8 +95,8 @@ class UpdateForm extends Component {
 @Form.create()
 class TableList extends PureComponent {
   state = {
-    modalVisible: false,
-    updateModalVisible: false,
+    viewModalVisible: false,
+    editModalVisible: false,
     expandForm: false,
     selectedRows: [],
     formValues: {},
@@ -267,9 +142,9 @@ class TableList extends PureComponent {
       title: 'Operation',
       render: (text, record) => (
         <Fragment>
-          <a onClick={() => this.handleUpdateModalVisible(true, record)}>More</a>
+          <a onClick={() => this.handleViewModalVisible(true, record)}>View</a>
           <Divider type="vertical" />
-          <a onClick={() => this.handleUpdateModalVisible(true, record)}>Edit</a>
+          <a onClick={() => this.handleEditModalVisible(true, record)}>Edit</a>
         </Fragment>
       ),
     },
@@ -381,16 +256,16 @@ class TableList extends PureComponent {
     });
   };
 
-  handleModalVisible = flag => {
+  handleViewModalVisible = flag => {
     this.setState({
-      modalVisible: !!flag,
+      viewModalVisible: !!flag,
     });
   };
 
-  handleUpdateModalVisible = (flag, record) => {
+  handleEditModalVisible = (flag, record) => {
     this.setState({
-      updateModalVisible: !!flag,
-      stepFormValues: record || {},
+      editModalVisible: !!flag,
+      record: record || {},
     });
   };
 
@@ -551,7 +426,7 @@ class TableList extends PureComponent {
       user: { data },
       loading,
     } = this.props;
-    const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
+    const { selectedRows, viewModalVisible, record } = this.state;
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
         <Menu.Item key="remove">Remove</Menu.Item>
@@ -560,14 +435,6 @@ class TableList extends PureComponent {
       </Menu>
     );
 
-    const parentMethods = {
-      handleAdd: this.handleAdd,
-      handleModalVisible: this.handleModalVisible,
-    };
-    const updateMethods = {
-      handleUpdateModalVisible: this.handleUpdateModalVisible,
-      handleUpdate: this.handleUpdate,
-    };
     return (
       <PageHeaderWrapper title="User Management Table">
         <Card bordered={false}>
@@ -598,19 +465,10 @@ class TableList extends PureComponent {
             />
           </div>
         </Card>
-        <CreateForm {...parentMethods} modalVisible={modalVisible} />
-        {/* {stepFormValues && Object.keys(stepFormValues).length ? (
-          <UpdateForm
-            {...updateMethods}
-            updateModalVisible={updateModalVisible}
-            values={stepFormValues}
-          />
-        ) : null} */}
-        <CollectionCreateForm
-          wrappedComponentRef={this.saveFormRef}
-          visible={this.state.visible}
-          onCancel={this.handleCancel}
-          onCreate={this.handleCreate}
+        <ViewFormModal
+          visible={viewModalVisible}
+          record={record}
+          handleModalVisible={this.handleViewModalVisible}
         />
       </PageHeaderWrapper>
     );

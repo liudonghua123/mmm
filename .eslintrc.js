@@ -34,6 +34,10 @@ module.exports = {
     'linebreak-style': 0,
     'react/no-multi-comp': ['off', { ignoreStateless: true }],
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
+    'react/sort-comp': [
+      'off',
+      { order: ['static-methods', 'lifecycle', 'everything-else', 'render'] },
+    ],
   },
   settings: {
     polyfills: ['fetch', 'promises', 'url'],
