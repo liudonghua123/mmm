@@ -30,7 +30,9 @@ const FormItem = Form.Item;
 const { Step } = Steps;
 const { TextArea } = Input;
 const { Option } = Select;
+// const { RadioGroup, RadioButton } = Radio;
 const RadioGroup = Radio.Group;
+const RadioButton = Radio.Button;
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
@@ -59,29 +61,119 @@ class ViewFormModal extends Component {
 
 @Form.create()
 class EditFormModal extends Component {
+  state = {
+    record: this.props.record,
+  };
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    console.info(`getDerivedStateFromProps: nextProps ${JSON.stringify(nextProps)}`);
+    return {
+      record: nextProps.record,
+    };
+  }
+
   render() {
-    const { visible, record, handleModalVisible, handleEditModal, form } = this.props;
+    const { visible, handleModalVisible, handleEditModal, form } = this.props;
     const { getFieldDecorator } = form;
-    console.info(`this.props: ${JSON.stringify(this.props)}`);
-    console.info(`getFieldDecorator: ${getFieldDecorator}`);
+    const { record } = this.state;
+    const dateFormat = 'YYYY-MM-DD';
     return (
       <Modal
-        destroyOnClose
-        title="View"
+        title="Edit"
         visible={visible}
-        onOk={handleEditModal}
-        onCancel={() => handleEditModal(false)}
+        onOk={handleEditModal(record)}
+        onCancel={() => handleModalVisible(false)}
       >
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
-          {getFieldDecorator('desc', {
-            rules: [{ required: true, message: '请输入至少五个字符的规则描述！', min: 5 }],
-          })(<Input placeholder="请输入" />)}
-        </FormItem>
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述2">
-          {getFieldDecorator('desc2', {
-            rules: [{ required: true, message: '请输入至少五个字符的规则描述！', min: 5 }],
-          })(<Input placeholder="请输入" />)}
-        </FormItem>
+        <Form>
+          <FormItem label="name">
+            {getFieldDecorator('name', {
+              rules: [{ required: true, message: 'Enter the name!', min: 5 }],
+              initialValue: record.name,
+            })(<Input placeholder="Enter the name!" />)}
+          </FormItem>
+          <FormItem label="username">
+            {getFieldDecorator('username', {
+              rules: [{ required: true, message: 'Enter the username!', min: 5 }],
+              initialValue: record.username,
+            })(<Input placeholder="Enter the username!" />)}
+          </FormItem>
+          <FormItem label="email">
+            {getFieldDecorator('email', {
+              rules: [{ required: true, message: 'Enter the email!', min: 5 }],
+              initialValue: record.email,
+            })(<Input placeholder="Enter the email!" />)}
+          </FormItem>
+          <FormItem label="phone">
+            {getFieldDecorator('phone', {
+              rules: [{ required: true, message: 'Enter the phone!', min: 5 }],
+              initialValue: record.phone,
+            })(<Input placeholder="Enter the phone!" />)}
+          </FormItem>
+          <FormItem label="gender">
+            {getFieldDecorator('gender', {
+              initialValue: record.gender,
+            })(
+              <RadioGroup>
+                <RadioButton value="male">male</RadioButton>
+                <RadioButton value="female">female</RadioButton>
+              </RadioGroup>
+            )}
+          </FormItem>
+          <FormItem label="institute">
+            {getFieldDecorator('institute', {
+              rules: [{ required: true, message: 'Enter the institute!', min: 5 }],
+              initialValue: record.institute,
+            })(<Input placeholder="Enter the institute!" />)}
+          </FormItem>
+          <FormItem label="arrivalDate">
+            {getFieldDecorator('arrivalDate', {
+              initialValue: moment(record.arrivalDate, dateFormat),
+            })(
+              <DatePicker
+                defaultValue={moment(record.arrivalDate, dateFormat)}
+                format={dateFormat}
+              />
+            )}
+          </FormItem>
+          <FormItem label="departureDate">
+            {getFieldDecorator('departureDate', {
+              initialValue: moment(record.departureDate, dateFormat),
+            })(
+              <DatePicker
+                defaultValue={moment(record.departureDate, dateFormat)}
+                format={dateFormat}
+              />
+            )}
+          </FormItem>
+          <FormItem label="room">
+            {getFieldDecorator('room', {
+              initialValue: record.room,
+            })(
+              <RadioGroup>
+                <RadioButton value="single">single</RadioButton>
+                <RadioButton value="double">double</RadioButton>
+              </RadioGroup>
+            )}
+          </FormItem>
+          <FormItem label="dietRequirement">
+            {getFieldDecorator('dietRequirement', {
+              rules: [{ required: true, message: 'Enter the dietRequirement!', min: 5 }],
+              initialValue: record.dietRequirement,
+            })(<Input placeholder="Enter the dietRequirement!" />)}
+          </FormItem>
+          <FormItem label="talkTitle">
+            {getFieldDecorator('talkTitle', {
+              rules: [{ required: true, message: 'Enter the talkTitle!', min: 5 }],
+              initialValue: record.talkTitle,
+            })(<Input placeholder="Enter the talkTitle!" />)}
+          </FormItem>
+          <FormItem label="talkAbstract">
+            {getFieldDecorator('talkAbstract', {
+              rules: [{ required: true, message: 'Enter the talkAbstract!', min: 5 }],
+              initialValue: record.talkAbstract,
+            })(<Input placeholder="Enter the talkAbstract!" />)}
+          </FormItem>
+        </Form>
       </Modal>
     );
   }
@@ -100,13 +192,30 @@ class TableList extends PureComponent {
     expandForm: false,
     selectedRows: [],
     formValues: {},
-    stepFormValues: {},
+    record: {},
+    action: 'edit',
   };
 
   columns = [
     {
+      title: 'name',
+      dataIndex: 'name',
+    },
+    {
       title: 'username',
       dataIndex: 'username',
+    },
+    {
+      title: 'institute',
+      dataIndex: 'institute',
+    },
+    {
+      title: 'arrivalDate',
+      dataIndex: 'arrivalDate',
+    },
+    {
+      title: 'departureDate',
+      dataIndex: 'departureDate',
     },
     {
       title: 'email',
@@ -118,33 +227,12 @@ class TableList extends PureComponent {
       sorter: true,
     },
     {
-      title: 'status',
-      dataIndex: 'status',
-      filters: [
-        {
-          text: status[0],
-          value: 0,
-        },
-        {
-          text: status[1],
-          value: 1,
-        },
-      ],
-      render(val) {
-        return <Badge status={statusMap[val]} text={status[val]} />;
-      },
-    },
-    {
-      title: 'address',
-      dataIndex: 'address',
-    },
-    {
       title: 'Operation',
       render: (text, record) => (
         <Fragment>
-          <a onClick={() => this.handleViewModalVisible(true, record)}>View</a>
+          {/* <a onClick={() => this.handleViewModalVisible(true, record)}>View</a> */}
           <Divider type="vertical" />
-          <a onClick={() => this.handleEditModalVisible(true, record)}>Edit</a>
+          <a onClick={() => this.handleEditModalVisible(true, record, 'edit')}>Edit</a>
         </Fragment>
       ),
     },
@@ -212,11 +300,14 @@ class TableList extends PureComponent {
         dispatch({
           type: 'user/remove',
           payload: {
-            key: selectedRows.map(row => row.key),
+            id: selectedRows.map(row => row.id),
           },
           callback: () => {
             this.setState({
               selectedRows: [],
+            });
+            dispatch({
+              type: 'user/fetch',
             });
           },
         });
@@ -256,46 +347,104 @@ class TableList extends PureComponent {
     });
   };
 
-  handleViewModalVisible = flag => {
+  handleViewModalVisible = (visible, record) => {
     this.setState({
-      viewModalVisible: !!flag,
-    });
-  };
-
-  handleEditModalVisible = (flag, record) => {
-    this.setState({
-      editModalVisible: !!flag,
+      viewModalVisible: !!visible,
       record: record || {},
     });
   };
 
-  handleAdd = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'user/add',
-      payload: {
-        desc: fields.desc,
-      },
+  handleEditModalVisible = (visible, record, action = 'edit') => {
+    console.info(`handleEditModalVisible record: ${JSON.stringify(record)}`);
+    this.setState({
+      editModalVisible: !!visible,
+      record: record || {},
+      action,
     });
-
-    message.success('添加成功');
-    this.handleModalVisible();
   };
 
-  handleUpdate = fields => {
-    const { dispatch } = this.props;
-    dispatch({
-      type: 'user/update',
-      payload: {
-        name: fields.name,
-        desc: fields.desc,
-        key: fields.key,
-      },
-    });
+  handleEditModal = record => e => {
+    const { form } = this.formRef.props;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+      console.log(`Received values of form: ${JSON.stringify(values)}`);
 
-    message.success('配置成功');
-    this.handleUpdateModalVisible();
+      const { dispatch } = this.props;
+      const updatedUser = {
+        ...record,
+        ...values,
+      };
+      console.log(`updatedUser: ${JSON.stringify(updatedUser)}`);
+      dispatch({
+        type: 'user/update',
+        payload: {
+          user: updatedUser,
+        },
+      });
+      dispatch({
+        type: 'user/fetch',
+      });
+      form.resetFields();
+      this.setState({ editModalVisible: false });
+    });
   };
+
+  handleAddModal = record => e => {
+    const { form } = this.formRef.props;
+    form.validateFields((err, values) => {
+      if (err) {
+        return;
+      }
+      console.log(`Received values of form: ${JSON.stringify(values)}`);
+
+      const { dispatch } = this.props;
+      const updatedUser = {
+        ...record,
+        ...values,
+      };
+      console.log(`updatedUser: ${JSON.stringify(updatedUser)}`);
+      dispatch({
+        type: 'user/add',
+        payload: {
+          user: updatedUser,
+        },
+      });
+      dispatch({
+        type: 'user/fetch',
+      });
+      form.resetFields();
+      this.setState({ editModalVisible: false });
+    });
+  };
+
+  // handleAdd = fields => {
+  //   const { dispatch } = this.props;
+  //   dispatch({
+  //     type: 'user/add',
+  //     payload: {
+  //       desc: fields.desc,
+  //     },
+  //   });
+
+  //   message.success('添加成功');
+  //   this.handleModalVisible();
+  // };
+
+  // handleUpdate = fields => {
+  //   const { dispatch } = this.props;
+  //   dispatch({
+  //     type: 'user/update',
+  //     payload: {
+  //       name: fields.name,
+  //       desc: fields.desc,
+  //       key: fields.key,
+  //     },
+  //   });
+  //   message.success('配置成功');
+  //   this.handleUpdateModalVisible();
+  // };
 
   renderSimpleForm() {
     const {
@@ -396,27 +545,6 @@ class TableList extends PureComponent {
     return expandForm ? this.renderAdvancedForm() : this.renderSimpleForm();
   }
 
-  showModal = () => {
-    this.setState({ visible: true });
-  };
-
-  handleCancel = () => {
-    this.setState({ visible: false });
-  };
-
-  handleCreate = () => {
-    const form = this.formRef.props.form;
-    form.validateFields((err, values) => {
-      if (err) {
-        return;
-      }
-
-      console.log('Received values of form: ', values);
-      form.resetFields();
-      this.setState({ visible: false });
-    });
-  };
-
   saveFormRef = formRef => {
     this.formRef = formRef;
   };
@@ -426,7 +554,8 @@ class TableList extends PureComponent {
       user: { data },
       loading,
     } = this.props;
-    const { selectedRows, viewModalVisible, record } = this.state;
+    const { selectedRows, viewModalVisible, editModalVisible, record, action } = this.state;
+    console.info(`render record: ${JSON.stringify(record)}`);
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
         <Menu.Item key="remove">Remove</Menu.Item>
@@ -441,7 +570,11 @@ class TableList extends PureComponent {
           <div className={styles.tableList}>
             <div className={styles.tableListForm}>{this.renderForm()}</div>
             <div className={styles.tableListOperator}>
-              <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
+              <Button
+                icon="plus"
+                type="primary"
+                onClick={() => this.handleEditModalVisible(true, null, 'add')}
+              >
                 Create
               </Button>
               {selectedRows.length > 0 && (
@@ -469,6 +602,13 @@ class TableList extends PureComponent {
           visible={viewModalVisible}
           record={record}
           handleModalVisible={this.handleViewModalVisible}
+        />
+        <EditFormModal
+          wrappedComponentRef={this.saveFormRef}
+          visible={editModalVisible}
+          record={record}
+          handleModalVisible={this.handleEditModalVisible}
+          handleEditModal={action === 'edit' ? this.handleEditModal : this.handleAddModal}
         />
       </PageHeaderWrapper>
     );

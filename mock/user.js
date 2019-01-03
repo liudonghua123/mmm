@@ -1,15 +1,30 @@
 import { parse } from 'url';
+import moment from 'moment';
 
 // mock users
-const users = [];
-for (let i = 0; i < 46; i += 1) {
+let users = [];
+for (let i = 1; i < 46; i += 1) {
   users.push({
     id: 100 + i,
     username: `user${i}`,
     name: `user${i}`,
     password: `user${i}`,
     email: `user${i}@demo.com`,
-    phone: `${i + 15200000000}`,
+    gender: `${Math.floor(Math.random() * 2) === '0' ? 'male' : 'female'}`,
+    institute: `institute ${i}`,
+    arrivalDate: `${moment()
+      .add(Math.floor(Math.random() * 30), 'days')
+      .format('YYYY-MM-DD')}`,
+    departureDate: `${moment()
+      .add(10 + Math.floor(Math.random() * 30), 'days')
+      .format('YYYY-MM-DD')}`,
+    room: `${Math.floor(Math.random() * 2) === '0' ? 'single' : 'double'}`,
+    dietRequirement: `${Math.floor(Math.random() * 2) === '0' ? 'single' : 'double'}`,
+    talkTitle: `${Math.floor(Math.random() * 2) === '0' ? 'talk xxx' : 'talk yyy'}`,
+    talkAbstract: `${
+      Math.floor(Math.random() * 2) === '0' ? 'talkAbstract xxx' : 'talkAbstract yyy'
+    }`,
+    phone: `+86-${i + 15200000000}`,
     address: `address ${i}`,
     age: `${i + 20}`,
     status: Math.floor(Math.random() * 10) % 2,
@@ -75,41 +90,43 @@ const saveUser = (req, res, u, b) => {
   }
 
   const body = (b && b.body) || req.body;
-  const { method, phone, email, password, id } = body;
+  const { method, id } = body;
+  console.info(`saveUser body: ${JSON.stringify(body)}`);
   let foundUser;
   let foundIndex;
 
   switch (method) {
     /* eslint no-case-declarations:0 */
     case 'delete':
-      [foundUser] = users;
-      foundIndex = 0;
-      for (let index = 0; index < users.length; index++) {
-        const user = users[index];
-        if (user.id === id) {
-          foundUser = user;
-          foundIndex = index;
-          break;
+      const deletedUsers = id.map(idValue => {
+        [foundUser] = users;
+        foundIndex = 0;
+        for (let index = 0; index < users.length; index++) {
+          const user = users[index];
+          if (user.id === idValue) {
+            foundUser = user;
+            foundIndex = index;
+            break;
+          }
         }
-      }
-      users.splice(foundIndex, 1);
+        return { index: foundIndex, user: foundUser };
+      });
+      console.info(`delete user, ${JSON.stringify(deletedUsers)}`);
+      users = users.filter((user, index) => !deletedUsers.map(item => item.index).includes(index));
       return res.send({
         status: 'ok',
-        data: foundUser,
+        data: deletedUsers.map(item => item.user),
       });
     // users = users.filter(item => id.indexOf(item.id) === -1);
     case 'post':
-      const i = Math.ceil(Math.random() * 10000);
       const addedUser = {
-        id: i,
-        username: `user${i}`,
-        password: `user${i}`,
-        phone: `${i + 15200000000}`,
-        address: `address ${i}`,
-        age: `${i + 20}`,
-        status: Math.floor(Math.random() * 10) % 2,
+        ...body.user,
+        id: users[users.length - 1].id + 1,
+        arrivalDate: moment(body.user.arrivalDate).format('YYYY-MM-DD'),
+        departureDate: moment(body.user.departureDate).format('YYYY-MM-DD'),
       };
-      users.unshift();
+      console.info(`add user ${JSON.stringify(addedUser)}`);
+      users.push(addedUser);
       return res.send({
         status: 'ok',
         data: addedUser,
@@ -125,7 +142,13 @@ const saveUser = (req, res, u, b) => {
           break;
         }
       }
-      const updatedUser = { ...foundUser, phone, email, password };
+      const updatedUser = {
+        ...foundUser,
+        ...body.user,
+        arrivalDate: moment(body.user.arrivalDate).format('YYYY-MM-DD'),
+        departureDate: moment(body.user.departureDate).format('YYYY-MM-DD'),
+      };
+      console.info(`update user ${foundIndex}, ${JSON.stringify(updatedUser)}`);
       users.splice(foundIndex, 1, updatedUser);
       return res.send({
         status: 'ok',
@@ -182,12 +205,12 @@ const defaultDetailUser = {
 
 const login = (req, res) => {
   const { password, username, type } = req.body;
-  if (password === '1' && username === '1') {
+  if (password === 'user1' && username === 'user1') {
     res.send({
       status: 'ok',
       type,
       currentAuthority: 'admin',
-      user: defaultDetailUser,
+      user: users[0],
     });
     return;
   }
