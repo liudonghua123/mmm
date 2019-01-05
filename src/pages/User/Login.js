@@ -41,6 +41,7 @@ class LoginPage extends Component {
 
   handleSubmit = (err, values) => {
     const { type } = this.state;
+    console.info(`Login handleSubmit type: ${type}, values: ${JSON.stringify(values)}`);
     if (!err) {
       const { dispatch } = this.props;
       dispatch({
@@ -77,8 +78,7 @@ class LoginPage extends Component {
           }}
         >
           <Tab key="account" tab={formatMessage({ id: 'app.login.tab-login-credentials' })}>
-            {login.status === 'error' &&
-              login.type === 'account' &&
+            {login.code === 0 &&
               !submitting &&
               this.renderMessage(formatMessage({ id: 'app.login.message-invalid-credentials' }))}
             <UserName

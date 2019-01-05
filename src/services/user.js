@@ -1,29 +1,30 @@
 import request from '@/utils/request';
+import { stringify } from 'qs';
 
 export async function login(params) {
-  return request('/api/users/login', {
+  return request('/api/public/login', {
     method: 'POST',
     body: params,
   });
 }
 
 export async function register(params) {
-  return request('/api/users/register', {
+  return request('/api/public/register', {
     method: 'POST',
     body: params,
   });
 }
 
-export async function queryUsers() {
-  return request('/api/users/');
+export async function queryUsers(params) {
+  return request(`/api/private/users/?${stringify(params)}`);
 }
 
 export async function queryUserById(id) {
-  return request(`/api/users/${id}`);
+  return request(`/api/private/users/${id}`);
 }
 
 export async function removeUser(params) {
-  return request('/api/users', {
+  return request('/api/private/users/', {
     method: 'POST',
     body: {
       ...params,
@@ -33,7 +34,7 @@ export async function removeUser(params) {
 }
 
 export async function addUser(params) {
-  return request('/api/users', {
+  return request('/api/private/users/', {
     method: 'POST',
     body: {
       ...params,
@@ -43,7 +44,7 @@ export async function addUser(params) {
 }
 
 export async function updateUser(params) {
-  return request('/api/users', {
+  return request('/api/private/users/', {
     method: 'PUT',
     body: {
       ...params,

@@ -71,10 +71,10 @@ export default {
     '@antv/data-set': 'DataSet',
   },
   // proxy: {
-  //   '/server/api/': {
-  //     target: 'https://preview.pro.ant.design/',
+  //   '/api/': {
+  //     target: 'http://localhost:2017/',
   //     changeOrigin: true,
-  //     pathRewrite: { '^/server': '' },
+  //     // pathRewrite: { '^/server': '' },
   //   },
   // },
   ignoreMomentLocale: true,

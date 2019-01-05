@@ -246,6 +246,14 @@ class TableList extends PureComponent {
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
+    // {"pagination":{"showSizeChanger":true,"showQuickJumper":true,"total":45,"pageSize":10,"current":2},"filtersArg":{},"sorter":{}}
+    console.info(
+      `handleStandardTableChange: pagination, filtersArg, sorter: ${JSON.stringify({
+        pagination,
+        filtersArg,
+        sorter,
+      })}`
+    );
     const { dispatch } = this.props;
     const { formValues } = this.state;
 
@@ -264,7 +272,7 @@ class TableList extends PureComponent {
     if (sorter.field) {
       params.sorter = `${sorter.field}_${sorter.order}`;
     }
-
+    console.info(`params: ${JSON.stringify(params)}`);
     dispatch({
       type: 'user/fetch',
       payload: params,
@@ -380,7 +388,7 @@ class TableList extends PureComponent {
       dispatch({
         type: 'user/update',
         payload: {
-          user: updatedUser,
+          ...updatedUser,
         },
       });
       dispatch({
@@ -408,7 +416,7 @@ class TableList extends PureComponent {
       dispatch({
         type: 'user/add',
         payload: {
-          user: updatedUser,
+          ...updatedUser,
         },
       });
       dispatch({
@@ -555,7 +563,7 @@ class TableList extends PureComponent {
       loading,
     } = this.props;
     const { selectedRows, viewModalVisible, editModalVisible, record, action } = this.state;
-    console.info(`render record: ${JSON.stringify(record)}`);
+    console.info(`render data: ${JSON.stringify(data)}`);
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
         <Menu.Item key="remove">Remove</Menu.Item>

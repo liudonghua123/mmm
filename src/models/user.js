@@ -9,8 +9,8 @@ export default {
   },
 
   effects: {
-    *fetch(_, { call, put }) {
-      const response = yield call(queryUsers);
+    *fetch({ payload }, { call, put }) {
+      const response = yield call(queryUsers, payload);
       yield put({
         type: 'save',
         payload: response,
@@ -40,12 +40,15 @@ export default {
       });
       if (callback) callback();
     },
-    *fetchCurrent(_, { call, put }) {
-      const response = yield call(queryUserById, 1);
-      yield put({
-        type: 'saveCurrentUser',
-        payload: response,
-      });
+    *fetchCurrent(_, { call, put, select }) {
+      const loginId = yield select(state => state.login.loginId);
+      if (loginId) {
+        const response = yield call(queryUserById, loginId);
+        yield put({
+          type: 'saveCurrentUser',
+          payload: response,
+        });
+      }
     },
   },
 

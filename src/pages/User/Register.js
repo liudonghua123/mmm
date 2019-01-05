@@ -50,8 +50,9 @@ class Register extends Component {
 
   componentDidUpdate() {
     const { form, register } = this.props;
+    console.info(`Register componentDidUpdate, register:${JSON.stringify(register)}`);
     const account = form.getFieldValue('mail');
-    if (register.status === 'ok') {
+    if (register.code === 0) {
       router.push({
         pathname: '/user/register-result',
         state: {

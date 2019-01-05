@@ -6,7 +6,7 @@ export default {
   namespace: 'register',
 
   state: {
-    status: undefined,
+    // status: undefined,
   },
 
   effects: {
@@ -21,11 +21,11 @@ export default {
 
   reducers: {
     registerHandle(state, { payload }) {
-      setAuthority('user');
+      setAuthority('guest');
       reloadAuthorized();
       return {
         ...state,
-        status: payload.status,
+        ...payload,
       };
     },
   },

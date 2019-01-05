@@ -1,5 +1,6 @@
 import { parse } from 'url';
 import moment from 'moment';
+import { toJSON } from '../functions/toJson';
 
 // mock users
 let users = [];
@@ -10,6 +11,7 @@ for (let i = 1; i < 46; i += 1) {
     name: `user${i}`,
     password: `user${i}`,
     email: `user${i}@demo.com`,
+    phone: `+86-${i + 15200000000}`,
     gender: `${Math.floor(Math.random() * 2) === '0' ? 'male' : 'female'}`,
     institute: `institute ${i}`,
     arrivalDate: `${moment()
@@ -24,23 +26,60 @@ for (let i = 1; i < 46; i += 1) {
     talkAbstract: `${
       Math.floor(Math.random() * 2) === '0' ? 'talkAbstract xxx' : 'talkAbstract yyy'
     }`,
-    phone: `+86-${i + 15200000000}`,
-    address: `address ${i}`,
-    age: `${i + 20}`,
+    authority: `user`,
     status: Math.floor(Math.random() * 10) % 2,
   });
 }
+
+const findUserbyId = id => {
+  let foundUser = {};
+  let foundIndex = -1;
+  [foundUser] = users;
+  foundIndex = 0;
+  for (let index = 0; index < users.length; index++) {
+    const user = users[index];
+    if (user.id === id) {
+      foundUser = user;
+      foundIndex = index;
+      break;
+    }
+  }
+  return { index: foundIndex, user: foundUser };
+};
+
+const findUserbyUsername = username => {
+  let foundUser = {};
+  let foundIndex = -1;
+  [foundUser] = users;
+  foundIndex = 0;
+  for (let index = 0; index < users.length; index++) {
+    const user = users[index];
+    if (user.username === username) {
+      foundUser = user;
+      foundIndex = index;
+      break;
+    }
+  }
+  return { index: foundIndex, user: foundUser };
+};
+
+const getUserById = (req, res, u, b) => {
+  // get the id
+  const { id } = req.params;
+  const { index, user } = findUserbyId(id);
+  if (index !== -1) {
+    return res.json({ code: 0, message: 'ok', data: { user } });
+  }
+  return res.json({ code: -1, message: `user for id: ${id} not found` });
+};
 
 const getUsers = (req, res, u) => {
   let url = u;
   if (!url || Object.prototype.toString.call(url) !== '[object String]') {
     url = req.url; // eslint-disable-line
   }
-
   const params = parse(url, true).query;
-
   let dataSource = users;
-
   if (params.sorter) {
     const s = params.sorter.split('_');
     dataSource = dataSource.sort((prev, next) => {
@@ -50,7 +89,6 @@ const getUsers = (req, res, u) => {
       return prev[s[0]] - next[s[0]];
     });
   }
-
   if (params.status) {
     const status = params.status.split(',');
     let filterDataSource = [];
@@ -61,16 +99,13 @@ const getUsers = (req, res, u) => {
     });
     dataSource = filterDataSource;
   }
-
   if (params.name) {
     dataSource = dataSource.filter(data => data.name.indexOf(params.name) > -1);
   }
-
   let pageSize = 10;
   if (params.pageSize) {
     pageSize = params.pageSize * 1;
   }
-
   const result = {
     list: dataSource,
     pagination: {
@@ -79,92 +114,89 @@ const getUsers = (req, res, u) => {
       current: parseInt(params.currentPage, 10) || 1,
     },
   };
-
   return res.json(result);
 };
 
 const saveUser = (req, res, u, b) => {
-  let url = u;
-  if (!url || Object.prototype.toString.call(url) !== '[object String]') {
-    url = req.url; // eslint-disable-line
-  }
+  const body = (b && b.body) || req.body;
+  const addedUser = {
+    ...body,
+    id: users[users.length - 1].id + 1,
+    arrivalDate: moment(body.arrivalDate).format('YYYY-MM-DD'),
+    departureDate: moment(body.departureDate).format('YYYY-MM-DD'),
+  };
+  console.info(`add user ${JSON.stringify(addedUser)}`);
+  users.push(addedUser);
+  return res.send({
+    code: 0,
+    message: 'ok',
+    data: { user: addedUser },
+  });
+};
 
+const updateUser = (req, res, u, b) => {
+  console.info(`{req, res, u, b}: ${toJSON({ req, res, u, b }, 3)}`);
+  const { id } = req.params;
+  const body = (b && b.body) || req.body;
+  const { index } = findUserbyId(id);
+  if (index !== -1) {
+    const updatedUser = {
+      ...body,
+      id,
+      arrivalDate: moment(body.arrivalDate).format('YYYY-MM-DD'),
+      departureDate: moment(body.departureDate).format('YYYY-MM-DD'),
+    };
+    console.info(`update user ${JSON.stringify(updatedUser)}`);
+    users.splice(index, 1, updatedUser);
+    return res.send({
+      code: 0,
+      message: 'ok',
+      data: { user: updatedUser },
+    });
+  }
+  return res.json({ code: -1, message: `user for id: ${id} not found` });
+};
+
+const deleteUsers = (req, res, u, b) => {
   const body = (b && b.body) || req.body;
   const { method, id } = body;
-  console.info(`saveUser body: ${JSON.stringify(body)}`);
   let foundUser;
   let foundIndex;
-
-  switch (method) {
-    /* eslint no-case-declarations:0 */
-    case 'delete':
-      const deletedUsers = id.map(idValue => {
-        [foundUser] = users;
-        foundIndex = 0;
-        for (let index = 0; index < users.length; index++) {
-          const user = users[index];
-          if (user.id === idValue) {
-            foundUser = user;
-            foundIndex = index;
-            break;
-          }
-        }
-        return { index: foundIndex, user: foundUser };
-      });
-      console.info(`delete user, ${JSON.stringify(deletedUsers)}`);
-      users = users.filter((user, index) => !deletedUsers.map(item => item.index).includes(index));
-      return res.send({
-        status: 'ok',
-        data: deletedUsers.map(item => item.user),
-      });
-    // users = users.filter(item => id.indexOf(item.id) === -1);
-    case 'post':
-      const addedUser = {
-        ...body.user,
-        id: users[users.length - 1].id + 1,
-        arrivalDate: moment(body.user.arrivalDate).format('YYYY-MM-DD'),
-        departureDate: moment(body.user.departureDate).format('YYYY-MM-DD'),
-      };
-      console.info(`add user ${JSON.stringify(addedUser)}`);
-      users.push(addedUser);
-      return res.send({
-        status: 'ok',
-        data: addedUser,
-      });
-    case 'put':
-      [foundUser] = users;
-      foundIndex = 0;
-      for (let index = 0; index < users.length; index++) {
-        const user = users[index];
-        if (user.id === id) {
-          foundUser = user;
-          foundIndex = index;
-          break;
-        }
+  const deletedUsers = id.map(idValue => {
+    [foundUser] = users;
+    foundIndex = 0;
+    for (let index = 0; index < users.length; index++) {
+      const user = users[index];
+      if (user.id === idValue) {
+        foundUser = user;
+        foundIndex = index;
+        break;
       }
-      const updatedUser = {
-        ...foundUser,
-        ...body.user,
-        arrivalDate: moment(body.user.arrivalDate).format('YYYY-MM-DD'),
-        departureDate: moment(body.user.departureDate).format('YYYY-MM-DD'),
-      };
-      console.info(`update user ${foundIndex}, ${JSON.stringify(updatedUser)}`);
-      users.splice(foundIndex, 1, updatedUser);
-      return res.send({
-        status: 'ok',
-        data: updatedUser,
-      });
-    default:
-      break;
-  }
+    }
+    return { index: foundIndex, user: foundUser };
+  });
+  console.info(`delete users ${JSON.stringify(deletedUsers.map(item => item.user))}`);
+  users = users.filter((user, index) => !deletedUsers.map(item => item.index).includes(index));
+  return res.send({
+    code: 0,
+    message: 'ok',
+    data: { users: deletedUsers.map(item => item.user) },
+  });
+};
 
-  const result = {
-    list: users,
-    pagination: {
-      total: users.length,
-    },
-  };
-  return res.json(result);
+const deleteUserById = (req, res, u, b) => {
+  const { id } = req.params;
+  const { index, user } = findUserbyId(id);
+  if (index !== -1) {
+    console.info(`delete user ${JSON.stringify(user)}`);
+    users.splice(index, 1);
+    return res.send({
+      code: 0,
+      message: 'ok',
+      data: { user },
+    });
+  }
+  return res.json({ code: -1, message: `user for id: ${id} not found` });
 };
 
 const defaultDetailUser = {
@@ -205,22 +237,30 @@ const defaultDetailUser = {
 
 const login = (req, res) => {
   const { password, username, type } = req.body;
+  console.info(
+    `login ${JSON.stringify({ password, username, type })}, req.body: ${JSON.stringify(req.body)}`
+  );
   if (password === 'user1' && username === 'user1') {
+    const { user } = findUserbyUsername('user1');
     res.send({
-      status: 'ok',
+      code: 0,
+      message: 'ok',
       type,
       currentAuthority: 'admin',
-      user: users[0],
+      data: { user: { ...user, authority: 'admin' } },
     });
     return;
   }
-  const user = users.filter(item => item.username === username && item.password === password);
+  const user = users.filter(
+    item => (item.username === username || item.email === username) && item.password === password
+  );
   if (user.length > 0) {
     res.send({
-      status: 'ok',
+      code: 0,
+      message: 'ok',
       type,
       currentAuthority: 'user',
-      user,
+      data: { user },
     });
     return;
   }
@@ -240,15 +280,16 @@ const register = (req, res) => {
     name: username,
   };
   users.unshift(user);
-  res.send({ status: 'ok', currentAuthority: 'user', user });
+  res.send({ code: 0, message: 'ok', currentAuthority: 'user', data: { user } });
 };
 
 export default {
-  'POST /api/users/login': login,
-  'POST /api/users/register': register,
-  'GET /api/users/1': defaultDetailUser,
-  'GET /api/users/': getUsers,
-  'POST /api/users/': saveUser,
-  'PUT /api/users/': saveUser,
-  'DELETE /api/users/': saveUser,
+  'POST /api/public/login': login,
+  'POST /api/public/register': register,
+  'GET /api/private/users/': getUsers,
+  'POST /api/private/users/': saveUser,
+  'PUT /api/private/users/': updateUser,
+  'DELETE /api/private/users/': deleteUsers,
+  'GET /api/private/users/:id': getUserById,
+  'DELETE /api/private/users/:id': deleteUserById,
 };

@@ -10,23 +10,21 @@ export default {
   namespace: 'login',
 
   state: {
-    status: undefined,
+    // status: undefined,
+    loginId: undefined,
   },
 
   effects: {
     *login({ payload }, { call, put }) {
+      console.info(`login: effets login payload: ${JSON.stringify(payload)}`);
       const response = yield call(login, payload);
-      console.info(
-        `login: effets login payload: ${JSON.stringify(payload)}, response: ${JSON.stringify(
-          response
-        )}`
-      );
+      console.info(`login: effets login response: ${JSON.stringify(response)}`);
       yield put({
         type: 'changeLoginStatus',
         payload: response,
       });
       // Login successfully
-      if (response.status === 'ok') {
+      if (response.code === 0) {
         reloadAuthorized();
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
@@ -62,7 +60,8 @@ export default {
       yield put({
         type: 'changeLoginStatus',
         payload: {
-          status: false,
+          // status: false,
+          loginId: undefined,
           currentAuthority: 'guest',
         },
       });
@@ -83,9 +82,10 @@ export default {
       setAuthority(payload.currentAuthority);
       const newState = {
         ...state,
-        ...payload,
-        status: payload.status,
-        type: payload.type,
+        ...payload.data,
+        loginId: payload.data.user.id,
+        // status: payload.status,
+        // type: payload.type,
       };
       console.info(`login: reducers changeLoginStatus newState: ${JSON.stringify(newState)}`);
       return newState;
@@ -95,6 +95,7 @@ export default {
       const newState = {
         ...state,
         ...payload,
+        loginId: payload.id,
       };
       console.info(`login: reducers updateLoginStatus newState: ${JSON.stringify(newState)}`);
       return newState;
