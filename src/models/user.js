@@ -1,4 +1,7 @@
 import { queryUsers, addUser, removeUser, updateUser, queryUserById } from '@/services/user';
+import { routerRedux } from 'dva/router';
+import { stringify } from 'qs';
+import { getUserId } from '@/utils/authority';
 
 export default {
   namespace: 'user',
@@ -32,22 +35,40 @@ export default {
       });
       if (callback) callback();
     },
-    *update({ payload, callback }, { call, put }) {
-      const response = yield call(updateUser, payload);
-      yield put({
-        type: 'save',
-        payload: response,
-      });
+    *update({ payload, callback }, { call, put, select }) {
+      let userId = yield select(state => state.login.userId);
+      if (!userId) {
+        userId = getUserId();
+      }
+      if (userId) {
+        const response = yield call(updateUser, userId, payload.user);
+        yield put({
+          type: 'save',
+          payload: response,
+        });
+      }
       if (callback) callback();
     },
     *fetchCurrent(_, { call, put, select }) {
-      const loginId = yield select(state => state.login.loginId);
-      if (loginId) {
-        const response = yield call(queryUserById, loginId);
+      let userId = yield select(state => state.login.userId);
+      if (!userId) {
+        userId = getUserId();
+      }
+      if (userId) {
+        const response = yield call(queryUserById, userId);
         yield put({
           type: 'saveCurrentUser',
           payload: response,
         });
+      } else {
+        yield put(
+          routerRedux.push({
+            pathname: '/user/login',
+            search: stringify({
+              redirect: window.location.href,
+            }),
+          })
+        );
       }
     },
   },
@@ -56,13 +77,13 @@ export default {
     save(state, action) {
       return {
         ...state,
-        data: action.payload,
+        data: action.payload.data,
       };
     },
     saveCurrentUser(state, action) {
       return {
         ...state,
-        currentUser: action.payload || {},
+        currentUser: action.payload.data.user || {},
       };
     },
     changeNotifyCount(state, action) {

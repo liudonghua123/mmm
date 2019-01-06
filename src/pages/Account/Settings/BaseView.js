@@ -24,17 +24,22 @@ const validatorPhone = (rule, value, callback) => {
   callback();
 };
 
-@connect(({ login }) => ({
-  user: login.user,
+@connect(({ user }) => ({
+  user: user.currentUser,
 }))
 @Form.create()
 class BaseView extends Component {
   componentDidMount() {
+    // get current user
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'user/fetchCurrent',
+    });
     this.setBaseInfo();
   }
 
   setBaseInfo = () => {
-    const { user, form } = this.props;
+    const { user = {}, form } = this.props;
     const dateFormat = 'YYYY-MM-DD';
     console.info(`setBaseInfo user: ${JSON.stringify(user)}`);
     Object.keys(form.getFieldsValue()).forEach(key => {
@@ -70,6 +75,9 @@ class BaseView extends Component {
         payload: {
           user: updatedUserInfo,
         },
+      });
+      dispatch({
+        type: 'user/fetchCurrent',
       });
       dispatch({
         type: 'login/updateLoginStatus',

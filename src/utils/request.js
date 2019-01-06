@@ -37,6 +37,21 @@ const checkStatus = response => {
   throw error;
 };
 
+const checkResponseCode = response => {
+  if (response.code !== 0) {
+    const errortext = response.message;
+    notification.error({
+      message: `请求错误 ${response.message}: ${response.url}`,
+      description: errortext,
+    });
+    const error = new Error(errortext);
+    error.name = `code`;
+    error.response = response;
+    throw error;
+  }
+  return response;
+};
+
 const cachedSave = (response, hashcode) => {
   /**
    * Clone a response data and store it in sessionStorage
@@ -65,6 +80,7 @@ const cachedSave = (response, hashcode) => {
  */
 export default function request(url, option) {
   const options = {
+    method: 'GET',
     expirys: isAntdPro(),
     ...option,
   };
@@ -83,6 +99,7 @@ export default function request(url, option) {
   };
   const newOptions = { ...defaultOptions, ...options };
   if (
+    newOptions.method === 'GET' ||
     newOptions.method === 'POST' ||
     newOptions.method === 'PUT' ||
     newOptions.method === 'DELETE'
@@ -91,6 +108,7 @@ export default function request(url, option) {
       newOptions.headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json; charset=utf-8',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
         ...newOptions.headers,
       };
       newOptions.body = JSON.stringify(newOptions.body);
@@ -98,6 +116,7 @@ export default function request(url, option) {
       // newOptions.body is FormData
       newOptions.headers = {
         Accept: 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
         ...newOptions.headers,
       };
     }
@@ -118,40 +137,40 @@ export default function request(url, option) {
       sessionStorage.removeItem(`${hashcode}:timestamp`);
     }
   }
-  return (
-    fetch(url, newOptions)
-      .then(checkStatus)
-      // .then(response => cachedSave(response, hashcode))
-      .then(response => {
-        // DELETE and 204 do not return data by default
-        // using .json will report an error.
-        if (newOptions.method === 'DELETE' || response.status === 204) {
-          return response.text();
-        }
-        return response.json();
-      })
-      .catch(e => {
-        const status = e.name;
-        if (status === 401) {
-          // @HACK
-          /* eslint-disable no-underscore-dangle */
-          window.g_app._store.dispatch({
-            type: 'login/logout',
-          });
-          return;
-        }
-        // environment should not be used
-        if (status === 403) {
-          router.push('/exception/403');
-          return;
-        }
-        if (status <= 504 && status >= 500) {
-          router.push('/exception/500');
-          return;
-        }
-        if (status >= 404 && status < 422) {
-          router.push('/exception/404');
-        }
-      })
-  );
+  console.info(`request newOptions: ${JSON.stringify(newOptions)}`);
+  return fetch(url, newOptions)
+    .then(checkStatus)
+    .then(response => cachedSave(response, hashcode))
+    .then(response => {
+      // DELETE and 204 do not return data by default
+      // using .json will report an error.
+      if (newOptions.method === 'DELETE' || response.status === 204) {
+        return response.text();
+      }
+      return response.json();
+    })
+    .then(response => checkResponseCode(response))
+    .catch(e => {
+      const status = e.name;
+      if (status === 401 || status === 'code') {
+        // @HACK
+        /* eslint-disable no-underscore-dangle */
+        window.g_app._store.dispatch({
+          type: 'login/logout',
+        });
+        return;
+      }
+      // environment should not be used
+      if (status === 403) {
+        router.push('/exception/403');
+        return;
+      }
+      if (status <= 504 && status >= 500) {
+        router.push('/exception/500');
+        return;
+      }
+      if (status >= 404 && status < 422) {
+        router.push('/exception/404');
+      }
+    });
 }

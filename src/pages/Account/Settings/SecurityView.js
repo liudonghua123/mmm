@@ -50,8 +50,8 @@ const passwordStrength = {
   ),
 };
 
-@connect(({ login }) => ({
-  user: login.user,
+@connect(({ user }) => ({
+  user: user.currentUser,
 }))
 class SecurityView extends Component {
   state = {
@@ -59,6 +59,14 @@ class SecurityView extends Component {
     field: 'password',
     value: '',
   };
+
+  componentDidMount() {
+    // get current user
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'user/fetchCurrent',
+    });
+  }
 
   showUpdateFormModal = (field, value) => () => {
     this.setState({ visible: true, field, value });
@@ -82,9 +90,14 @@ class SecurityView extends Component {
       dispatch({
         type: 'user/update',
         payload: {
-          ...user,
-          [field]: newValue,
+          user: {
+            ...user,
+            [field]: newValue,
+          },
         },
+      });
+      dispatch({
+        type: 'user/fetchCurrent',
       });
       dispatch({
         type: 'login/updateLoginStatus',

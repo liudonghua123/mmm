@@ -311,6 +311,7 @@ class TableList extends PureComponent {
             id: selectedRows.map(row => row.id),
           },
           callback: () => {
+            console.info(`callback`);
             this.setState({
               selectedRows: [],
             });
@@ -558,10 +559,25 @@ class TableList extends PureComponent {
   };
 
   render() {
-    const {
-      user: { data },
-      loading,
-    } = this.props;
+    const { user, loading } = this.props;
+    const data = {
+      list: [],
+      pagination: {
+        total: 0,
+        pageSize: 10,
+        current: 1,
+      },
+    };
+    console.info(`user: ${JSON.stringify(user)}`);
+    if (user.data && user.data.users) {
+      data.list = user.data.users;
+      data.pagination = {
+        total: user.data.count,
+        pageSize: user.data.pageSize,
+        current: user.data.currentPage,
+      };
+    }
+    console.info(`data: ${JSON.stringify(data)}`);
     const { selectedRows, viewModalVisible, editModalVisible, record, action } = this.state;
     console.info(`render data: ${JSON.stringify(data)}`);
     const menu = (

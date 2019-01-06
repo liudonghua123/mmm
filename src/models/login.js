@@ -2,7 +2,7 @@ import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
 import { fakeAccountLogin, getFakeCaptcha } from '@/services/api';
 import { login } from '@/services/user';
-import { setAuthority } from '@/utils/authority';
+import { setAuthority, setToken, setUserId, clearToken, clearUserId } from '@/utils/authority';
 import { getPageQuery } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
 
@@ -11,7 +11,7 @@ export default {
 
   state: {
     // status: undefined,
-    loginId: undefined,
+    userId: undefined,
   },
 
   effects: {
@@ -61,10 +61,12 @@ export default {
         type: 'changeLoginStatus',
         payload: {
           // status: false,
-          loginId: undefined,
+          userId: undefined,
           currentAuthority: 'guest',
         },
       });
+      clearToken();
+      clearUserId();
       reloadAuthorized();
       yield put(
         routerRedux.push({
@@ -79,14 +81,16 @@ export default {
 
   reducers: {
     changeLoginStatus(state, { payload }) {
-      setAuthority(payload.currentAuthority);
+      setAuthority(payload.data.user.authority);
+      setToken(payload.data.token);
       const newState = {
         ...state,
         ...payload.data,
-        loginId: payload.data.user.id,
+        userId: payload.data.user.id,
         // status: payload.status,
         // type: payload.type,
       };
+      setUserId(payload.data.user.id);
       console.info(`login: reducers changeLoginStatus newState: ${JSON.stringify(newState)}`);
       return newState;
     },
@@ -95,7 +99,6 @@ export default {
       const newState = {
         ...state,
         ...payload,
-        loginId: payload.id,
       };
       console.info(`login: reducers updateLoginStatus newState: ${JSON.stringify(newState)}`);
       return newState;
