@@ -64,8 +64,11 @@ export default {
   routes: pageRoutes,
   // Theme for antd
   // https://ant.design/docs/react/customize-theme-cn
+  // https://ant.design/docs/react/customize-theme
+  // https://github.com/ant-design/ant-design/blob/master/components/style/themes/default.less#L265
   theme: {
     'primary-color': defaultSettings.primaryColor,
+    'form-item-margin-bottom': '6px',
   },
   externals: {
     '@antv/data-set': 'DataSet',

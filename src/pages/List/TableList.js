@@ -187,7 +187,7 @@ class EditFormModal extends Component {
             {getFieldDecorator('talkAbstract', {
               rules: [{ required: false, message: 'Enter the talkAbstract!' }],
               initialValue: record.talkAbstract,
-            })(<Input placeholder="Enter the talkAbstract!" />)}
+            })(<Input.TextArea placeholder="Enter the talkAbstract!" rows={5} />)}
           </FormItem>
         </Form>
       </Modal>

@@ -174,8 +174,8 @@ class BaseView extends Component {
                 rules: [{ required: false, message: 'Enter the talkAbstract!' }],
               })(
                 <Input.TextArea
-                  placeholder={formatMessage({ id: 'app.settings.basic.profile-placeholder' })}
-                  rows={4}
+                  placeholder='Enter the talkAbstract!'
+                  rows={5}
                 />
               )}
             </FormItem>
