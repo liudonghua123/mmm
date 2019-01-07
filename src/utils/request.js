@@ -141,16 +141,21 @@ export default function request(url, option) {
   return fetch(url, newOptions)
     .then(checkStatus)
     .then(response => cachedSave(response, hashcode))
-    .then(response => {
+    .then(response =>
       // DELETE and 204 do not return data by default
       // using .json will report an error.
-      if (newOptions.method === 'DELETE' || response.status === 204) {
-        return response.text();
-      }
-      return response.json();
-    })
+      // if (newOptions.method === 'DELETE' || response.status === 204) {
+      //   return response.text();
+      // }
+       response.json()
+    )
     .then(response => checkResponseCode(response))
     .catch(e => {
+      console.info(
+        `request catch exception with url: ${url}, newOptions: ${JSON.stringify(
+          newOptions
+        )}, e: ${JSON.stringify(e)}`
+      );
       const status = e.name;
       if (status === 401 || status === 'code') {
         // @HACK

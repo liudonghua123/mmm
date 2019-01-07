@@ -57,6 +57,7 @@ export default {
     },
 
     *logout(_, { put }) {
+      console.info(`model login -> logout`)
       yield put({
         type: 'changeLoginStatus',
         payload: {

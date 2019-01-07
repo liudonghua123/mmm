@@ -1,6 +1,7 @@
 import React, { Component, PureComponent, Fragment } from 'react';
 import { connect } from 'dva';
 import moment from 'moment';
+import { formatMessage, FormattedMessage } from 'umi/locale';
 import {
   Row,
   Col,
@@ -73,39 +74,54 @@ class EditFormModal extends Component {
   }
 
   render() {
-    const { visible, handleModalVisible, handleEditModal, form } = this.props;
+    const { visible, handleModalVisible, handleEditModal, form, action } = this.props;
     const { getFieldDecorator } = form;
     const { record } = this.state;
     const dateFormat = 'YYYY-MM-DD';
     return (
       <Modal
-        title="Edit"
+        title={action}
         visible={visible}
         onOk={handleEditModal(record)}
         onCancel={() => handleModalVisible(false)}
       >
         <Form>
-          <FormItem label="name">
-            {getFieldDecorator('name', {
-              rules: [{ required: true, message: 'Enter the name!', min: 5 }],
-              initialValue: record.name,
-            })(<Input placeholder="Enter the name!" />)}
-          </FormItem>
           <FormItem label="username">
             {getFieldDecorator('username', {
-              rules: [{ required: true, message: 'Enter the username!', min: 5 }],
+              rules: [{ required: true, message: 'Enter the username!' }],
               initialValue: record.username,
             })(<Input placeholder="Enter the username!" />)}
           </FormItem>
+          <FormItem label="password">
+            {getFieldDecorator('password', {
+              rules: [{ required: action === 'create', message: 'Enter the password!' }],
+              initialValue: '',
+            })(<Input placeholder="Enter the password!" />)}
+          </FormItem>
           <FormItem label="email">
             {getFieldDecorator('email', {
-              rules: [{ required: true, message: 'Enter the email!', min: 5 }],
+              rules: [
+                {
+                  required: true,
+                  message: formatMessage({ id: 'validation.email.required' }),
+                },
+                {
+                  type: 'email',
+                  message: formatMessage({ id: 'validation.email.wrong-format' }),
+                },
+              ],
               initialValue: record.email,
             })(<Input placeholder="Enter the email!" />)}
           </FormItem>
+          <FormItem label="name">
+            {getFieldDecorator('name', {
+              rules: [{ required: false, message: 'Enter the name!' }],
+              initialValue: record.name,
+            })(<Input placeholder="Enter the name!" />)}
+          </FormItem>
           <FormItem label="phone">
             {getFieldDecorator('phone', {
-              rules: [{ required: true, message: 'Enter the phone!', min: 5 }],
+              rules: [{ required: false, message: 'Enter the phone!' }],
               initialValue: record.phone,
             })(<Input placeholder="Enter the phone!" />)}
           </FormItem>
@@ -121,13 +137,13 @@ class EditFormModal extends Component {
           </FormItem>
           <FormItem label="institute">
             {getFieldDecorator('institute', {
-              rules: [{ required: true, message: 'Enter the institute!', min: 5 }],
+              rules: [{ required: false, message: 'Enter the institute!' }],
               initialValue: record.institute,
             })(<Input placeholder="Enter the institute!" />)}
           </FormItem>
           <FormItem label="arrivalDate">
             {getFieldDecorator('arrivalDate', {
-              initialValue: moment(record.arrivalDate, dateFormat),
+              initialValue: record.arrivalDate ? moment(record.arrivalDate, dateFormat) : '',
             })(
               <DatePicker
                 defaultValue={moment(record.arrivalDate, dateFormat)}
@@ -137,7 +153,7 @@ class EditFormModal extends Component {
           </FormItem>
           <FormItem label="departureDate">
             {getFieldDecorator('departureDate', {
-              initialValue: moment(record.departureDate, dateFormat),
+              initialValue: record.departureDate ? moment(record.departureDate, dateFormat) : '',
             })(
               <DatePicker
                 defaultValue={moment(record.departureDate, dateFormat)}
@@ -157,19 +173,19 @@ class EditFormModal extends Component {
           </FormItem>
           <FormItem label="dietRequirement">
             {getFieldDecorator('dietRequirement', {
-              rules: [{ required: true, message: 'Enter the dietRequirement!', min: 5 }],
+              rules: [{ required: false, message: 'Enter the dietRequirement!' }],
               initialValue: record.dietRequirement,
             })(<Input placeholder="Enter the dietRequirement!" />)}
           </FormItem>
           <FormItem label="talkTitle">
             {getFieldDecorator('talkTitle', {
-              rules: [{ required: true, message: 'Enter the talkTitle!', min: 5 }],
+              rules: [{ required: false, message: 'Enter the talkTitle!' }],
               initialValue: record.talkTitle,
             })(<Input placeholder="Enter the talkTitle!" />)}
           </FormItem>
           <FormItem label="talkAbstract">
             {getFieldDecorator('talkAbstract', {
-              rules: [{ required: true, message: 'Enter the talkAbstract!', min: 5 }],
+              rules: [{ required: false, message: 'Enter the talkAbstract!' }],
               initialValue: record.talkAbstract,
             })(<Input placeholder="Enter the talkAbstract!" />)}
           </FormItem>
@@ -370,6 +386,8 @@ class TableList extends PureComponent {
       record: record || {},
       action,
     });
+    const { form } = this.formRef.props;
+    form.resetFields();
   };
 
   handleEditModal = record => e => {
@@ -385,6 +403,9 @@ class TableList extends PureComponent {
         ...record,
         ...values,
       };
+      if (!updatedUser.password) {
+        delete updatedUser.password;
+      }
       console.log(`updatedUser: ${JSON.stringify(updatedUser)}`);
       dispatch({
         type: 'user/update',
@@ -597,7 +618,7 @@ class TableList extends PureComponent {
               <Button
                 icon="plus"
                 type="primary"
-                onClick={() => this.handleEditModalVisible(true, null, 'add')}
+                onClick={() => this.handleEditModalVisible(true, null, 'create')}
               >
                 Create
               </Button>
@@ -633,6 +654,7 @@ class TableList extends PureComponent {
           record={record}
           handleModalVisible={this.handleEditModalVisible}
           handleEditModal={action === 'edit' ? this.handleEditModal : this.handleAddModal}
+          action={action}
         />
       </PageHeaderWrapper>
     );

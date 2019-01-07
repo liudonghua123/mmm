@@ -73,7 +73,7 @@ class BaseView extends Component {
       dispatch({
         type: 'user/update',
         payload: {
-          user: updatedUserInfo,
+          ...updatedUserInfo,
         },
       });
       dispatch({
@@ -99,17 +99,26 @@ class BaseView extends Component {
           <Form layout="vertical" hideRequiredMark>
             <FormItem label="name">
               {getFieldDecorator('name', {
-                rules: [{ required: true, message: 'Enter the name!', min: 5 }],
+                rules: [{ required: false, message: 'Enter the name!' }],
               })(<Input placeholder="Enter the name!" />)}
             </FormItem>
             <FormItem label="username">
               {getFieldDecorator('username', {
-                rules: [{ required: true, message: 'Enter the username!', min: 5 }],
-              })(<Input placeholder="Enter the username!" />)}
+                rules: [{ required: false, message: 'Enter the username!' }],
+              })(<Input placeholder="Enter the username!" disabled />)}
             </FormItem>
             <FormItem label="email">
               {getFieldDecorator('email', {
-                rules: [{ required: true, message: 'Enter the email!', min: 5 }],
+                rules: [
+                  {
+                    required: true,
+                    message: formatMessage({ id: 'validation.email.required' }),
+                  },
+                  {
+                    type: 'email',
+                    message: formatMessage({ id: 'validation.email.wrong-format' }),
+                  },
+                ],
               })(<Input placeholder="Enter the email!" />)}
             </FormItem>
 
@@ -117,10 +126,9 @@ class BaseView extends Component {
               {getFieldDecorator('phone', {
                 rules: [
                   {
-                    required: true,
+                    required: false,
                     message: formatMessage({ id: 'app.settings.basic.phone-message' }, {}),
                   },
-                  { validator: validatorPhone },
                 ],
               })(<PhoneView />)}
             </FormItem>
@@ -134,7 +142,7 @@ class BaseView extends Component {
             </FormItem>
             <FormItem label="institute">
               {getFieldDecorator('institute', {
-                rules: [{ required: true, message: 'Enter the institute!', min: 5 }],
+                rules: [{ required: false, message: 'Enter the institute!' }],
               })(<Input placeholder="Enter the institute!" />)}
             </FormItem>
             <FormItem label="arrivalDate">
@@ -153,17 +161,17 @@ class BaseView extends Component {
             </FormItem>
             <FormItem label="dietRequirement">
               {getFieldDecorator('dietRequirement', {
-                rules: [{ required: true, message: 'Enter the dietRequirement!', min: 5 }],
+                rules: [{ required: false, message: 'Enter the dietRequirement!' }],
               })(<Input placeholder="Enter the dietRequirement!" />)}
             </FormItem>
             <FormItem label="talkTitle">
               {getFieldDecorator('talkTitle', {
-                rules: [{ required: true, message: 'Enter the talkTitle!', min: 5 }],
+                rules: [{ required: false, message: 'Enter the talkTitle!' }],
               })(<Input placeholder="Enter the talkTitle!" />)}
             </FormItem>
             <FormItem label="talkAbstract">
               {getFieldDecorator('talkAbstract', {
-                rules: [{ required: true, message: 'Enter the talkAbstract!', min: 5 }],
+                rules: [{ required: false, message: 'Enter the talkAbstract!' }],
               })(
                 <Input.TextArea
                   placeholder={formatMessage({ id: 'app.settings.basic.profile-placeholder' })}

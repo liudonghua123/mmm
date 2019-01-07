@@ -90,10 +90,8 @@ class SecurityView extends Component {
       dispatch({
         type: 'user/update',
         payload: {
-          user: {
-            ...user,
-            [field]: newValue,
-          },
+          ...user,
+          [field]: newValue,
         },
       });
       dispatch({

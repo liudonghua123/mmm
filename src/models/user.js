@@ -36,12 +36,15 @@ export default {
       if (callback) callback();
     },
     *update({ payload, callback }, { call, put, select }) {
-      let userId = yield select(state => state.login.userId);
-      if (!userId) {
-        userId = getUserId();
-      }
+      const userId = payload.id || (yield select(state => state.login.userId)) || getUserId();
+      // if(!userId) {
+      //   userId = yield select(state => state.login.userId);
+      // }
+      // if (!userId) {
+      //   userId = getUserId();
+      // }
       if (userId) {
-        const response = yield call(updateUser, userId, payload.user);
+        const response = yield call(updateUser, userId, payload);
         yield put({
           type: 'save',
           payload: response,
