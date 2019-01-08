@@ -143,23 +143,13 @@ class EditFormModal extends Component {
           </FormItem>
           <FormItem label="arrivalDate">
             {getFieldDecorator('arrivalDate', {
-              initialValue: record.arrivalDate ? moment(record.arrivalDate, dateFormat) : '',
-            })(
-              <DatePicker
-                defaultValue={moment(record.arrivalDate, dateFormat)}
-                format={dateFormat}
-              />
-            )}
+              initialValue: record.arrivalDate ? moment(record.arrivalDate, dateFormat) : null,
+            })(<DatePicker format={dateFormat} />)}
           </FormItem>
           <FormItem label="departureDate">
             {getFieldDecorator('departureDate', {
-              initialValue: record.departureDate ? moment(record.departureDate, dateFormat) : '',
-            })(
-              <DatePicker
-                defaultValue={moment(record.departureDate, dateFormat)}
-                format={dateFormat}
-              />
-            )}
+              initialValue: record.departureDate ? moment(record.departureDate, dateFormat) : null,
+            })(<DatePicker format={dateFormat} />)}
           </FormItem>
           <FormItem label="room">
             {getFieldDecorator('room', {
