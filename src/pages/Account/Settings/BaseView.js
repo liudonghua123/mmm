@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import { formatMessage, FormattedMessage } from 'umi/locale';
-import { Form, Input, Radio, Select, Button, DatePicker } from 'antd';
+import { Form, Input, Radio, Select, Button, DatePicker, notification } from 'antd';
 import { connect } from 'dva';
 import moment from 'moment';
 import styles from './BaseView.less';
@@ -45,7 +45,7 @@ class BaseView extends Component {
     Object.keys(form.getFieldsValue()).forEach(key => {
       const obj = {};
       if (key === 'arrivalDate' || key === 'departureDate') {
-        obj[key] = moment(user[key], dateFormat) || null;
+        obj[key] = user[key] ? moment(user[key], dateFormat) : null;
       } else {
         obj[key] = user[key] || null;
       }
@@ -75,6 +75,12 @@ class BaseView extends Component {
         payload: {
           ...updatedUserInfo,
         },
+        callback: () => {
+          notification.info({
+            message: `successfully!`,
+            description: `update info successfully!`,
+          });
+        },
       });
       dispatch({
         type: 'user/fetchCurrent',
@@ -97,11 +103,6 @@ class BaseView extends Component {
       <div className={styles.baseView} ref={this.getViewDom}>
         <div className={styles.left}>
           <Form layout="vertical" hideRequiredMark>
-            <FormItem label="name">
-              {getFieldDecorator('name', {
-                rules: [{ required: false, message: 'Enter the name!' }],
-              })(<Input placeholder="Enter the name!" />)}
-            </FormItem>
             <FormItem label="username">
               {getFieldDecorator('username', {
                 rules: [{ required: false, message: 'Enter the username!' }],
@@ -121,7 +122,11 @@ class BaseView extends Component {
                 ],
               })(<Input placeholder="Enter the email!" />)}
             </FormItem>
-
+            <FormItem label="name">
+              {getFieldDecorator('name', {
+                rules: [{ required: false, message: 'Enter the name!' }],
+              })(<Input placeholder="Enter the name!" />)}
+            </FormItem>
             <FormItem label={formatMessage({ id: 'app.settings.basic.phone' })}>
               {getFieldDecorator('phone', {
                 rules: [
@@ -172,12 +177,7 @@ class BaseView extends Component {
             <FormItem label="talkAbstract">
               {getFieldDecorator('talkAbstract', {
                 rules: [{ required: false, message: 'Enter the talkAbstract!' }],
-              })(
-                <Input.TextArea
-                  placeholder='Enter the talkAbstract!'
-                  rows={5}
-                />
-              )}
+              })(<Input.TextArea placeholder="Enter the talkAbstract!" rows={5} />)}
             </FormItem>
             <Button type="primary" onClick={this.updateUserInfo}>
               <FormattedMessage
