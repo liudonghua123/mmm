@@ -13,12 +13,17 @@ export function getAuthority(str) {
   if (typeof authority === 'string') {
     return [authority];
   }
-  return authority || ['admin'];
+  return authority || ['user'];
 }
 
 export function setAuthority(authority) {
   const proAuthority = typeof authority === 'string' ? [authority] : authority;
   return localStorage.setItem('antd-pro-authority', JSON.stringify(proAuthority));
+}
+
+export function isAdmin() {
+  const authorityString = localStorage.getItem('antd-pro-authority');
+  return authorityString.includes('admin');
 }
 
 export function getToken() {

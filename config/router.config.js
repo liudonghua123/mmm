@@ -102,6 +102,26 @@ export default [
           },
         ],
       },
+      // list
+      {
+        path: '/notifications',
+        icon: 'table',
+        name: 'Notifications',
+        routes: [
+          {
+            authority: ['admin', 'root'],
+            path: '/notifications/management',
+            name: 'Notification management',
+            component: './Notification/CardList',
+          },
+          {
+            path: '/notifications/list',
+            name: 'Notification',
+            authority: ['admin', 'root', 'user'],
+            component: './Notification/NotificationListCard',
+          },
+        ],
+      },
       {
         path: '/profile',
         name: 'profile',
