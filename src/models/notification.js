@@ -4,6 +4,7 @@ import {
   removeNotification,
   updateNotification,
 } from '@/services/notification';
+import { markRead, markUnread, isRead } from '@/utils/authority';
 
 export default {
   namespace: 'notification',

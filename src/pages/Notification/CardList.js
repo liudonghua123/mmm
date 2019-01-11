@@ -182,6 +182,19 @@ class CardList extends PureComponent {
     });
   };
 
+  handleRemoveNotification = item => () => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'notification/remove',
+      payload: { id: [item.id] },
+      callback: () => {
+        dispatch({
+          type: 'notification/fetch',
+        });
+      },
+    });
+  };
+
   saveFormRef = formRef => {
     this.formRef = formRef;
   };
@@ -213,16 +226,16 @@ class CardList extends PureComponent {
                   <Card
                     hoverable
                     className={styles.card}
-                    onClick={() => this.handleFormModalVisible(true, item)}
+                    extra={[
+                      <Button
+                        type="danger"
+                        onClick={this.handleRemoveNotification(item)}
+                        icon="close"
+                      />,
+                    ]}
                   >
                     <Card.Meta
-                      avatar={
-                        <img
-                          alt=""
-                          className={styles.cardAvatar}
-                          src="https://cdn4.iconfinder.com/data/icons/time-24/24/bellalarmnotificationsecurity_ic_name_of_icon_24px-512.png"
-                        />
-                      }
+                      avatar={<Icon type="notification" theme="twoTone" style={{ fontSize: 32 }} />}
                       title={<a>{item.title}</a>}
                       description={
                         // <Ellipsis className={styles.item} lines={3}>
@@ -235,6 +248,7 @@ class CardList extends PureComponent {
                           value={BraftEditor.createEditorState(item.content)}
                         />
                       }
+                      onClick={() => this.handleFormModalVisible(true, item)}
                     />
                   </Card>
                 </List.Item>

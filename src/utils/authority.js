@@ -49,3 +49,24 @@ export function setUserId(userId) {
 export function clearUserId() {
   return localStorage.removeItem('userId');
 }
+
+export function markRead(id) {
+  const markedId = JSON.parse(localStorage.getItem('notification') || '[]');
+  if (markedId.indexOf(id) === -1) {
+    markedId.push(id);
+    localStorage.setItem('notification', JSON.stringify(markedId));
+  }
+}
+
+export function markUnread(id) {
+  const markedId = JSON.parse(localStorage.getItem('notification') || '[]');
+  if (markedId.indexOf(id) !== -1) {
+    markedId.splice(markedId.indexOf(id), 1);
+    localStorage.setItem('notification', JSON.stringify(markedId));
+  }
+}
+
+export function isRead(id) {
+  const markedId = JSON.parse(localStorage.getItem('notification') || '[]');
+  return markedId.includes(id);
+}

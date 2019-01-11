@@ -26,7 +26,7 @@ import {
 import BraftEditor from 'braft-editor';
 import 'braft-editor/dist/index.css';
 
-import { isAdmin } from '@/utils/authority';
+import { isAdmin, isRead, markRead, markUnread } from '@/utils/authority';
 
 import Ellipsis from '@/components/Ellipsis';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
@@ -122,6 +122,12 @@ class CardList extends PureComponent {
     });
   };
 
+  handleMarkReadNotification = (item, read) => () => {
+    // eslint-disable-next-line no-unused-expressions
+    read ? markRead(item.id) : markUnread(item.id);
+    this.forceUpdate();
+  };
+
   saveFormRef = formRef => {
     this.formRef = formRef;
   };
@@ -149,15 +155,38 @@ class CardList extends PureComponent {
             renderItem={item =>
               item && (
                 <List.Item key={item.id}>
-                  <Card hoverable className={styles.card} actions={[<a>Mark read</a>]}>
+                  <Card
+                    hoverable
+                    className={styles.card}
+                    extra={
+                      isRead(item.id) ? (
+                        <Icon type="info-circle" />
+                      ) : (
+                        <Icon type="question-circle" theme="filled" />
+                      )
+                    }
+                    actions={[
+                      isRead(item.id) ? (
+                        <Button
+                          type="dashed"
+                          onClick={this.handleMarkReadNotification(item, false)}
+                          block
+                        >
+                          Mark Unread
+                        </Button>
+                      ) : (
+                        <Button
+                          type="dashed"
+                          onClick={this.handleMarkReadNotification(item, true)}
+                          block
+                        >
+                          Mark Read
+                        </Button>
+                      ),
+                    ]}
+                  >
                     <Card.Meta
-                      avatar={
-                        <img
-                          alt=""
-                          className={styles.cardAvatar}
-                          src="https://cdn4.iconfinder.com/data/icons/time-24/24/bellalarmnotificationsecurity_ic_name_of_icon_24px-512.png"
-                        />
-                      }
+                      avatar={<Icon type="notification" theme="twoTone" style={{ fontSize: 32 }} />}
                       title={<a>{item.title}</a>}
                       description={
                         <BraftEditor
